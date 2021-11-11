@@ -33,7 +33,7 @@ class Utils:
         :return:
         """
         try:
-            self.output_frame = np.where(mask == 0, mask, frame)
+            self.output_frame = np.where(mask == 0, 0, frame)
 
             return self.output_frame
         except Exception as e:
