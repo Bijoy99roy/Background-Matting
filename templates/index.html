@@ -3,10 +3,16 @@
 {% block content %}
 <div class="container homepage">
     <div class="row">
-        <div class="col-lg-8  offset-lg-2">
+        <div class="col-lg-8">
             <h3 class="mt-5">Live Streaming</h3>
             <img src="{{ url_for('video_feed') }}" width="100%">
         </div>
+    </div>
+
+    <div class="row mt-3">
+        <a href="/video_feed/1"><button type="button"  class="btn btn-primary">Remove Background</button></a>
+        <a href="/video_feed/2"><button type="button"  class="btn btn-primary">Blur Background</button></a>
+        <a href="/video_feed/3"><button type="button"  class="btn btn-primary">Change Background</button></a>
     </div>
 
 </div>
