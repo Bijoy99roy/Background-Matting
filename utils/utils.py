@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+
 class Utils:
     def __init__(self):
         self.output_frame = None
@@ -21,3 +22,20 @@ class Utils:
             return self.output_frame
         except Exception as e:
             raise e
+
+    def remove_background(self, mask, frame):
+        """
+        Completely removing the background of the image.
+        parameters
+        ----------------------
+        mask: Extracted binary mask from the frame
+        frame: Input frame from the video stream
+        :return:
+        """
+        try:
+            self.output_frame = np.where(mask == 0, mask, frame)
+
+            return self.output_frame
+        except Exception as e:
+            raise e
+
