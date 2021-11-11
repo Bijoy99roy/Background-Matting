@@ -39,3 +39,20 @@ class Utils:
         except Exception as e:
             raise e
 
+    def change_background(self, mask, frame, image):
+        """
+        Change the background of the incoming frame
+        parameters
+        ----------------------
+        mask: Extracted binary mask from the frame
+        frame: Input frame from the video stream
+        image: The image to replace background with
+        :return:
+        """
+        try:
+            self.output_frame = np.where(mask == 0, image, frame)
+
+            return self.output_frame
+        except Exception as e:
+            raise e
+
