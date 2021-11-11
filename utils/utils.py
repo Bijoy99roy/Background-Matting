@@ -39,17 +39,19 @@ class Utils:
         except Exception as e:
             raise e
 
-    def change_background(self, mask, frame, image):
+    def change_background(self, mask, frame, path):
         """
         Change the background of the incoming frame
         parameters
         ----------------------
         mask: Extracted binary mask from the frame
         frame: Input frame from the video stream
-        image: The image to replace background with
+        path: The image to replace background with
         :return:
         """
         try:
+            image = cv2.imread(path)
+            image = cv2.resize(image, (frame.shape[1], frame.shape[0]))
             self.output_frame = np.where(mask == 0, image, frame)
 
             return self.output_frame
