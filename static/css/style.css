@@ -1,0 +1,19 @@
+.heading{
+background-color: #F2A154;
+text-align: center;
+padding: 10px;
+color:white;
+}
+
+body{
+background-color: #222831;
+color: white;
+}
+
+.card-header{
+background-color: #30475E;
+}
+
+.card-body{
+background-color: #222831;
+}
