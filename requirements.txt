@@ -4,7 +4,10 @@ certifi==2021.10.8
 click==8.0.3
 colorama==0.4.4
 cycler==0.11.0
+dnspython==2.1.0
 Flask==2.0.2
+Flask-Cors==1.10.3
+geomet==0.2.1.post1
 importlib-metadata==4.8.2
 itsdangerous==2.0.1
 Jinja2==3.0.3
@@ -16,6 +19,7 @@ numpy==1.21.4
 opencv-contrib-python==4.5.4.58
 Pillow==8.4.0
 protobuf==3.19.1
+pymongo[srv]==3.12.1
 pyparsing==3.0.5
 python-dateutil==2.8.2
 six==1.16.0
