@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+  <div class="dropdown mt-2">
+  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Log List
+  </button>
+    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+      <a class="dropdown-item" href="/getlogs/api_handler">Api Handler</a>
+      <a class="dropdown-item" href="/getlogs/prediction_log">Prediction Log</a>
+      <a class="dropdown-item" href="/getlogs/folder_handler">Folder Handler</a>
+      <a class="dropdown-item" href="/getlogs/validation_log">Validation Log</a>
+      <a class="dropdown-item" href="/getlogs/value_from_schema_log">Value From Schema</a>
+    </div>
+  </div>
+
+
+  <div>
+    {% for log in logs %}
+    {{log["cur_date"]}}/{{log["cur_time"]}} {{log["level"]}}:  {{log["message"]}}<br><br>
+    {% endfor %}
+  </div>
+</div>
+
+
+{% endblock %}
