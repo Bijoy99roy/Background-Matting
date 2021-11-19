@@ -8,7 +8,6 @@ import os
 import random
 
 app = Flask(__name__)
-camera = cv2.VideoCapture(0)
 segmentation = Segmentation()
 utils = Utils()
 logger = AppLogger()
@@ -63,6 +62,7 @@ def video_feed_modified(mode):
 
 def gen_frames(mode=0):
     try:
+        camera = cv2.VideoCapture(0)
         logger.log(collection_name, 'Entered Gen_frames method', 'Info')
         randnum = random.randrange(0, 7) # getting random number for replacing background with random images.
         while True:
