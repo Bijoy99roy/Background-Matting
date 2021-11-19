@@ -18,7 +18,7 @@ MarkupSafe==2.0.1
 matplotlib==3.4.3
 mediapipe==0.8.9
 numpy==1.21.4
-opencv-contrib-python==4.5.4.58
+opencv-contrib-python-headless==4.5.4.58
 Pillow==8.4.0
 protobuf==3.19.1
 pymongo[srv]==3.12.1
