@@ -1,3 +1,4 @@
+from application_logging.logger import AppLogger
 import mediapipe as mp
 import numpy as np
 import cv2
@@ -9,6 +10,9 @@ class Segmentation:
         self.mask = None
         self.bg_color = (0, 0, 0)
         self.fg_color = (255, 255, 255)
+        self.logger = AppLogger()
+        self.logger.database.connect_db()
+        self.collection_name = "segmentation_handler"
 
     def get_mask(self, frame):
         """
@@ -17,6 +21,7 @@ class Segmentation:
         :return: Segmentation mask
         """
         try:
+            # self.logger.log(self.collection_name, f"Segmenting the frame and getting binary mask form it.", "Info")
             with self.mp_selfie_segmentation.SelfieSegmentation(
                     model_selection=1) as selfie_segmentation:
 
@@ -32,4 +37,7 @@ class Segmentation:
 
             return self.mask, frame
         except Exception as e:
-            raise e
+            self.logger.log(self.collection_name,
+                            f"An exception has occured while performing segmentation and binary mask extraction. \
+                            Message: {str(e)}",
+                            "Error")
