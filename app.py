@@ -1,93 +1,86 @@
 from segmentation_mask.segmentation import Segmentation
 from utils.utils import Utils
 from flask import Flask, Response, render_template
+from flask_socketio import SocketIO, emit
 from application_logging.logger import AppLogger
 from flask_cors import cross_origin
 import cv2
 import os
-import random
+import io
+from PIL import Image
+import base64
+import numpy as np
+from engineio.payload import Payload
 
+Payload.max_decode_packets = 2048
 app = Flask(__name__)
-camera = cv2.VideoCapture(0)
+socketio = SocketIO(app, cors_allowed_origins='*')
 segmentation = Segmentation()
 utils = Utils()
 logger = AppLogger()
-collection_name = "api_handler"
+log_file_object = open("prediction_log/api_handler.txt", 'a+')
 
 
 @app.route('/', methods=['GET', 'POST'])
 @cross_origin()
 def home():
     try:
-        logger.database.connect_db()
-        if logger.database.is_connected():
-            logger.log(collection_name, 'Database Connected....', 'Info')
-        else:
-            raise Exception('Database not connected')
-        logger.log(collection_name, 'Initiating app', 'Info')
+        logger.log(log_file_object, 'Initiating app', 'Info')
         return render_template('index.html')
     except Exception as e:
         logger.log(
-            collection_name,
+            log_file_object,
             f'Exception occured in initiating or creation/deletion of Input_data directory. Message: {str(e)}',
             'Error')
         message = 'ERROR :: '+str(e)
         return render_template('exception.html', exception=message)
 
 
-@app.route('/video_feed', methods=['GET'])
-@cross_origin()
-def video_feed():
+def readb64(base64_string):
+    idx = base64_string.find('base64,')
+    base64_string = base64_string[idx+7:]
+
+    sbuf = io.BytesIO()
+
+    sbuf.write(base64.b64decode(base64_string, ' /'))
+    pimg = Image.open(sbuf)
+
+    return cv2.cvtColor(np.array(pimg), cv2.COLOR_RGB2BGR)
+
+
+@socketio.on('image')
+def image(data_image):
+    frame = (readb64(data_image['data']))
+    frame = gen_frames(frame, data_image['mode'])
+    imgencode = cv2.imencode('.jpeg', frame, [cv2.IMWRITE_JPEG_QUALITY, 40])[1]
+    # base64 encode
+    string_data = base64.b64encode(imgencode).decode('utf-8')
+    b64_src = 'data:image/jpeg;base64,'
+    string_data = b64_src + string_data
+    # emit the frame back
+    emit('response_back', string_data)
+
+
+def gen_frames(frame, mode=0):
     try:
-        return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+        logger.log(log_file_object, 'Entered Gen_frames method', 'Info')
+
+        if mode == 1:
+            mask, frame = segmentation.get_mask(frame)
+            frame = utils.remove_background(mask, frame)
+        elif mode == 2:
+            mask, frame = segmentation.get_mask(frame)
+            frame = utils.blur_background(mask, frame)
+        elif mode == 3:
+            lst = os.listdir('bg_images/')
+            path = 'bg_images/'+lst[0]
+            mask, frame = segmentation.get_mask(frame)
+            frame = utils.change_background(mask, frame, path)
+
+        return frame
+
     except Exception as e:
-        logger.log(collection_name,
-                   f'Exception occured while streaming video in video_feed method. Message: {str(e)}',
-                   'Error')
-        message = 'ERROR :: ' + str(e)
-        return render_template('exception.html', exception=message)
-
-
-@app.route('/video_feed/<mode>', methods=['GET'])
-@cross_origin()
-def video_feed_modified(mode):
-    try:
-        return Response(gen_frames(int(mode)), mimetype='multipart/x-mixed-replace; boundary=frame')
-    except Exception as e:
-        logger.log(collection_name,
-                   f'Exception occured while streaming video in video_feed_modified method. Message: {str(e)}',
-                   'Error')
-        message = 'ERROR :: ' + str(e)
-        return render_template('exception.html', exception=message)
-
-
-def gen_frames(mode=0):
-    try:
-        logger.log(collection_name, 'Entered Gen_frames method', 'Info')
-        randnum = random.randrange(0, 7) # getting random number for replacing background with random images.
-        while True:
-            success, frame = camera.read()  # read the camera frame
-            if not success:
-                break
-            else:
-                if mode == 1:
-                    mask, frame = segmentation.get_mask(frame)
-                    frame = utils.remove_background(mask, frame)
-                elif mode == 2:
-                    mask, frame = segmentation.get_mask(frame)
-                    frame = utils.blur_background(mask, frame)
-                elif mode == 3:
-                    lst = os.listdir('bg_images/')
-                    path = 'bg_images/'+lst[randnum]
-                    mask, frame = segmentation.get_mask(frame)
-                    frame = utils.change_background(mask, frame, path)
-
-                ret, buffer = cv2.imencode('.jpg', frame)
-                frame = buffer.tobytes()
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # concat frame one by one and show result
-    except Exception as e:
-        logger.log(collection_name,
+        logger.log(log_file_object,
                    f'Exception occured while streaming video/Changing background in gen_frames method. Message: {str(e)}',
                    'Error')
         message = 'ERROR :: ' + str(e)
@@ -118,18 +111,12 @@ def get_logs(log):
     """
 
     try:
-        logger.database.connect_db()
-        if logger.database.is_connected():
-            logger.log(collection_name, 'Database Connected....', 'Info')
-        else:
-            raise Exception('Database not connected')
-        data = logger.database.read_data(log)
+        data = []
         return render_template('logs.html', logs=data)
     except Exception as e:
         message = 'Error :: ' + str(e)
-        logger.database.close_connection()
         return render_template('exception.html', exception=message)
 
 
 if __name__ == "__main__":
-    app.run()
+    socketio.run(app, debug=True)
