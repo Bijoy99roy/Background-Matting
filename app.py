@@ -37,28 +37,38 @@ def home():
 
 
 def readb64(base64_string):
-    idx = base64_string.find('base64,')
-    base64_string = base64_string[idx+7:]
+    try:
+        idx = base64_string.find('base64,')
+        base64_string = base64_string[idx+7:]
 
-    sbuf = io.BytesIO()
+        sbuf = io.BytesIO()
 
-    sbuf.write(base64.b64decode(base64_string, ' /'))
-    pimg = Image.open(sbuf)
+        sbuf.write(base64.b64decode(base64_string, ' /'))
+        pimg = Image.open(sbuf)
 
-    return cv2.cvtColor(np.array(pimg), cv2.COLOR_RGB2BGR)
+        return cv2.cvtColor(np.array(pimg), cv2.COLOR_RGB2BGR)
+    except Exception as e:
+        raise e
 
 
 @socketio.on('image')
 def image(data_image):
-    frame = (readb64(data_image['data']))
-    frame = gen_frames(frame, data_image['mode'])
-    imgencode = cv2.imencode('.jpeg', frame, [cv2.IMWRITE_JPEG_QUALITY, 40])[1]
-    # base64 encode
-    string_data = base64.b64encode(imgencode).decode('utf-8')
-    b64_src = 'data:image/jpeg;base64,'
-    string_data = b64_src + string_data
-    # emit the frame back
-    emit('response_back', string_data)
+    try:
+        frame = (readb64(data_image['data']))
+        frame = gen_frames(frame, data_image['mode'])
+        imgencode = cv2.imencode('.jpeg', frame, [cv2.IMWRITE_JPEG_QUALITY, 40])[1]
+        # base64 encode
+        string_data = base64.b64encode(imgencode).decode('utf-8')
+        b64_src = 'data:image/jpeg;base64,'
+        string_data = b64_src + string_data
+        # emit the frame back
+        emit('response_back', string_data)
+    except Exception as e:
+        logger.log(log_file_object,
+                   f'Exception occured while recieving data in image method. Message: {str(e)}',
+                   'Error')
+        message = 'ERROR :: ' + str(e)
+        return render_template('exception.html', exception=message)
 
 
 def gen_frames(frame, mode=0):
@@ -111,7 +121,8 @@ def get_logs(log):
     """
 
     try:
-        data = []
+        with open(f"prediction_log/{log}.txt", 'r') as log:
+            data = log.readlines()
         return render_template('logs.html', logs=data)
     except Exception as e:
         message = 'Error :: ' + str(e)
