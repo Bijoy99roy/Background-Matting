@@ -17,7 +17,7 @@ Find it from below link incase if it any use for you
 ```
 
 ## 🚀 Deployed App
-[Launch App](http://www.background-matting1.herokuapp.com)
+[Launch App](https://background-matting1.herokuapp.com)
 
 ## Demo
 
