@@ -17,7 +17,7 @@ Find it from below link incase if it any use for you
 ```
 
 ## 🚀 Deployed App
-[Launch App](background-matting1.herokuapp.com)
+[Launch App](http://www.background-matting1.herokuapp.com)
 
 ## Demo
 
@@ -32,6 +32,7 @@ Find it from below link incase if it any use for you
 - Flask
 - flask_socketio
 - mediapipe
+- opencv
 
   
 ## Tech Stack
